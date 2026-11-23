@@ -4,6 +4,40 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Hunarsaaz Construction – Service Portal</title>
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta name="build-version" content="2026-11-23-v4">
+<script>
+/* Auto-update: agar server par naya version ho to page khud reload ho jata hai (hard refresh ki zaroorat nahi).
+   Naya update dene par upar build-version ka content badal dein. file:// par ye khamoshi se skip ho jata hai. */
+(function(){
+  try{
+    if(!/^https?:$/.test(location.protocol))return;
+    var meta=document.querySelector('meta[name="build-version"]');
+    var mine=meta?meta.getAttribute('content'):'';
+    if(!mine)return;
+    var KEY='hsc_build_reload';
+    function check(){
+      fetch(location.pathname+location.search,{cache:'reload',credentials:'same-origin'})
+        .then(function(r){return r.ok?r.text():''})
+        .then(function(txt){
+          var m=txt.match(/<meta name="build-version" content="([^"]+)"/);
+          if(!m)return;
+          var latest=m[1];
+          if(latest!==mine){
+            var tried=sessionStorage.getItem(KEY);
+            if(tried===latest)return;           /* loop se bachao: ek version ke liye sirf ek reload */
+            sessionStorage.setItem(KEY,latest);
+            location.reload();
+          }else{sessionStorage.removeItem(KEY);}
+        })
+        .catch(function(){});
+    }
+    check();
+    document.addEventListener('visibilitychange',function(){if(!document.hidden)check();});
+  }catch(e){}
+})();
+</script>
  <script>(function(){function go(){var i=[].slice.call(document.images).filter(function(m){return /logo/i.test(m.alt)})[0];if(!i||!i.naturalWidth)return false;i.decode().then(function(){var c=document.createElement('canvas');c.width=c.height=128;var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,128,128);var s=128/Math.max(i.naturalWidth,i.naturalHeight),w=i.naturalWidth*s,h=i.naturalHeight*s;x.drawImage(i,(128-w)/2,(128-h)/2,w,h);var o=document.querySelector('link[rel=icon]');if(o)o.remove();var l=document.createElement('link');l.rel='icon';l.type='image/png';l.href=c.toDataURL('image/png');document.head.appendChild(l)});return true}var n=0,t=setInterval(function(){if(go()||++n>40)clearInterval(t)},250)})()</script>
 <style>
 :root{--red:#c62f2a;--red-d:#a32320;--red-l:#fdecea;--ink:#1b2430;--mut:#667085;--line:#e5e8ee;--bg:#f4f5f8;--card:#fff;--green:#12805c;--green-l:#e3f6ee;--amber:#b25e09;--amber-l:#fff3dd;--blue:#1d5fd1;--blue-l:#e6efff;--rad:12px;--sh:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08)}
@@ -1819,9 +1853,8 @@ function renderApp(){
   GROUP_ORDER.forEach(function(g){if(!groups[g])return;nav+='<div class="grp">'+esc(g)+'</div>'+groups[g].map(function(it){return '<button class="nav'+(S.view===it.id?' on':'')+'" data-a="nav" data-id="'+it.id+'">'+ic(it.icon)+esc(it.label)+'</button>';}).join('');});
   var cur=S.view==='dashboard'?{label:'Dashboard'}:itemById(S.view);
   var nal=hasSvc('construction')||hasSvc('propertySales')||hasSvc('propertyRental')||hasSvc('resourceServices')?allAlerts().length:0;
-  $('#app').innerHTML='<div class="shell"><aside class="side'+(S.nav?' open':'')+'"><div class="brand"><img src="'+LOGO+'" alt="Hunarsaaz Construction"></div><nav>'+nav+'</nav><div class="foot"><div class="av">'+esc(initials(u.name))+'</div><div class="who"><b>'+esc(u.name)+'</b><small>'+esc(u.company)+'</small></div><button class="icon-btn" title="Sign out" data-a="logout">'+ic('logout')+'</button></div></aside>'+
-   '<div class="scrim'+(S.nav?' show':'')+'" data-a="navclose"></div><div class="main"><div class="top"><button class="icon-btn burger" data-a="navopen">'+ic('menu')+'</button><h3>'+esc(cur?cur.label:'')+'</h3><span class="pill co">'+esc(u.company)+'</span><span class="pill role">'+esc(u.role)+'</span>'+(allowedView('notifications')?'<button class="icon-btn bellb" title="Notifications" data-a="nav" data-id="notifications">'+ic('bell')+(nal?'<em>'+nal+'</em>':'')+'</button>':'')+'</div><div class="page" id="page"></div></div></div>';
-  renderPage();
+  var _oldNav=document.querySelector('.side nav'),_oldY=_oldNav?_oldNav.scrollTop:0; $('#app').innerHTML='<div class="shell"><aside class="side'+(S.nav?' open':'')+'"><div class="brand"><img src="'+LOGO+'" alt="Hunarsaaz Construction"></div><nav>'+nav+'</nav><div class="foot"><div class="av">'+esc(initials(u.name))+'</div><div class="who"><b>'+esc(u.name)+'</b><small>'+esc(u.company)+'</small></div><button class="icon-btn" title="Sign out" data-a="logout">'+ic('logout')+'</button></div></aside>'+
+   '<div class="scrim'+(S.nav?' show':'')+'" data-a="navclose"></div><div class="main"><div class="top"><button class="icon-btn burger" data-a="navopen">'+ic('menu')+'</button><h3>'+esc(cur?cur.label:'')+'</h3><span class="pill co">'+esc(u.company)+'</span><span class="pill role">'+esc(u.role)+'</span>'+(allowedView('notifications')?'<button class="icon-btn bellb" title="Notifications" data-a="nav" data-id="notifications">'+ic('bell')+(nal?'<em>'+nal+'</em>':'')+'</button>':'')+'</div><div class="page" id="page"></div></div></div>'; var _newNav=document.querySelector('.side nav'); if(_newNav){ if(_oldNav){_newNav.scrollTop=_oldY;} else {var _act=_newNav.querySelector('.nav.on'); if(_act&&_act.scrollIntoView){_act.scrollIntoView({block:'center'});}} } renderPage();
 }
 function renderPage(){
   var it=S.view==='dashboard'?null:itemById(S.view),h;
